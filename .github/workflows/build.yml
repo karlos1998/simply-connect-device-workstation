@@ -20,6 +20,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Install system dependencies
+        run: sudo apt-get install -y portaudio19-dev  # Instalacja PortAudio
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
@@ -31,14 +34,14 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements.txt  # Instaluje zależności z pliku
 
       - name: Run tests
         run: |
-          python -m unittest discover
+          python -m unittest discover  # Uruchamia testy jednostkowe (jeśli są w projekcie)
 
       - name: Build and run the project
         run: |
-          python main.py 
+          python main.py  # Uruchomienie aplikacji
 
-    timeout-minutes: 10  # Ustawia limit czasu na 10 minut
+    timeout-minutes: 10  # Limit czasu na 10 minut
