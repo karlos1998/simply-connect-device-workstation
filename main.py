@@ -2,12 +2,9 @@ import numpy as np
 import sounddevice as sd
 import threading
 import time
-from scipy.io.wavfile import write
-import requests
-
-from audio_recorder import AudioRecorder
-from dtmf import DTMFDetector
 from simply_connect_api import SimplyConnectAPI
+from scipy.io.wavfile import write
+from audio_listener import AudioListener
 
 api_key = 'TODO' #todo
 SAMPLE_RATE = 8000 #todo
@@ -16,16 +13,12 @@ def dtmf_callback(detected_tones):
     SimplyConnectAPI.send_dtmf_tone(detected_tones)
 
 
-def audio_callback(audio_data_concat, is_talking):
+def record_callback(audio_data_concat, is_talking):
 
     audio_file_path = "temp.wav"
     write(audio_file_path, SAMPLE_RATE, (audio_data_concat.flatten() * 32767).astype(np.int16))
 
     SimplyConnectAPI.send_audio_fragment(audio_file_path, is_talking)
-
-def calculate_rms(data):
-    """Oblicz RMS dla danych audio."""
-    return np.sqrt(np.mean(np.square(data)))
 
 def main():
 
@@ -42,22 +35,11 @@ def main():
     print(f"Indeks urządzenia: {usb_microphone_index}")
 
 
+    audio_listener = AudioListener(microphone_index=usb_microphone_index, record_callback=record_callback, dtmf_callback=dtmf_callback)
 
-    # Rozpoczęcie wykrywania DTMF
-    dtmf_detector = DTMFDetector(microphone_index=usb_microphone_index, callback=dtmf_callback)
-
-    dtmf_detection_thread = threading.Thread(target=dtmf_detector.start_detection)
-    dtmf_detection_thread.daemon = True
-    dtmf_detection_thread.start()
-
-
-    #Rozpoczęcie zbierania dzwięku
-
-    audio_recorder = AudioRecorder(microphone_index=usb_microphone_index, callback=audio_callback)
-
-    audio_recorder_thread = threading.Thread(target=audio_recorder.record)
-    audio_recorder_thread.daemon = True
-    audio_recorder_thread.start()
+    audio_listener_thread = threading.Thread(target=audio_listener.record)
+    audio_listener_thread.daemon = True
+    audio_listener_thread.start()
 
 
     while True:

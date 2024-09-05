@@ -33,24 +33,21 @@ def detect_dtmf_tone(frequencies, magnitudes, threshold=50, tolerance=5):
     return []
 
 
-def get_default_microphone_index():
-    devices = sd.query_devices()
-    usb_microphone = next((device for device in devices if "USB Audio" in device['name'] and device['max_input_channels'] > 0), None)
-    return devices.index(usb_microphone) if usb_microphone else None
-
 
 class DTMFDetector:
-    def __init__(self, microphone_index=None, sample_rate=8000, block_size=1024, callback=None):
+    def __init__(self, callback=None, sample_rate=8000):
         self.sample_rate = sample_rate
-        self.block_size = block_size
+        self.block_size = None
         self.callback = callback
         self.audio_queue = queue.Queue()
         self.last_detected_time = 0
         self.last_tone = None
-        self.microphone_index = microphone_index
+        self.microphone_index = None
 
-        if self.microphone_index is None:
-            self.microphone_index = get_default_microphone_index()
+    def set_microphone(self, microphone_index=None, sample_rate=8000, block_size=1024, ):
+        self.sample_rate = sample_rate
+        self.block_size = block_size
+        self.microphone_index = microphone_index
 
     def audio_callback(self, indata, frames, time_info, status):
         audio_data = indata[:, 0] * 20  # Wzmocnienie sygnału
