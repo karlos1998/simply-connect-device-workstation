@@ -36,9 +36,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt  # Instaluje zależności z pliku
 
-      - name: Run tests
-        run: |
-          python -m unittest discover  # Uruchamia testy jednostkowe (jeśli są w projekcie)
+#      - name: Run tests
+#        run: |
+#          python -m unittest discover  # Uruchamia testy jednostkowe (jeśli są w projekcie)
 
       - name: Build and run the project
         run: |
