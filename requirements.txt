@@ -1,0 +1,11 @@
+certifi==2024.8.30
+cffi==1.17.1
+charset-normalizer==3.3.2
+idna==3.8
+numpy==2.0.2
+pycparser==2.22
+requests==2.32.3
+scipy==1.13.1
+sounddevice==0.5.0
+soundfile==0.12.1
+urllib3==2.2.2
