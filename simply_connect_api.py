@@ -1,9 +1,12 @@
+from distutils.command.config import config
+
 import requests
 import json
+import config
 
 class SimplyConnectAPI:
     api_key = 'TODO'
-    base_url = "http://192.168.98.109/workstation"
+    base_url = config.server_url + "/workstation"
 
     @staticmethod
     def get_headers():
@@ -48,3 +51,13 @@ class SimplyConnectAPI:
                 print(response_data)
             except Exception as e:
                 print("Błąd podczas wysyłania audio do serwera:", e)
+
+    @staticmethod
+    def login():
+        url = f"{SimplyConnectAPI.base_url}/login"
+        data = {}
+        try:
+            response = requests.post(url, headers=SimplyConnectAPI.get_headers(), json=data)
+            return response.json().get("token")
+        except Exception as e:
+            print(f"Bład logowania: {e}")
