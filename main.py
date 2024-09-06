@@ -29,7 +29,7 @@ def main():
     pusher_client.set_auth_details(auth_url=SimplyConnectAPI.base_url + "/broadcasting/auth", bearer_token=login_token)
 
     def on_connect():
-        pusher_client.subscribe_private("workstation.1",
+        pusher_client.subscribe_private("device.130147.call-status",
                                         callback_success=lambda: print("Private channel subscription succeeded"),
                                         callback_fail=lambda err: print(f"Failed to subscribe to private channel: {err}"))
 

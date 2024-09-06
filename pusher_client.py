@@ -92,6 +92,7 @@ class PusherClient:
                                          on_close=self.on_close)
         self.ws.on_open = self.on_open
 
+        # self.ws.run_forever()
         socket_thread = threading.Thread(target=self.ws.run_forever)
         socket_thread.start()
 
@@ -107,7 +108,6 @@ class PusherClient:
 
         self.ping_thread = threading.Thread(target=ping)
 
-        time.sleep(self.ping_interval)
         self.ping_thread.start()
 
     def stop_pinging(self):
