@@ -9,9 +9,6 @@ scipy==1.13.1
 sounddevice==0.5.0
 soundfile==0.12.1
 urllib3==2.2.2
-
 websocket-client~=1.8.0
-pyusb~=1.2.1
 pydub~=0.25.1
-pyudev~=0.24.3
 python-dotenv~=1.0.1
