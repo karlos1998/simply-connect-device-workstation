@@ -4,6 +4,7 @@ import threading
 import time
 
 import config
+from audio_devices import AudioDevices
 from pusher_client import PusherClient
 from simply_connect_api import SimplyConnectAPI
 from scipy.io.wavfile import write
@@ -15,6 +16,9 @@ def dtmf_callback(detected_tones):
 
 def record_callback(audio_data_concat, is_talking):
 
+    # audio_file_path = "temp.ts"
+    # write(audio_file_path, 8000, audio_data_concat)
+
     audio_file_path = "temp.wav"
     write(audio_file_path, 8000, (audio_data_concat.flatten() * 32767).astype(np.int16))
 
@@ -22,7 +26,11 @@ def record_callback(audio_data_concat, is_talking):
 
 def main():
 
+    #Login to Simply Connect
     login_token=SimplyConnectAPI.login()
+
+    #Send input/output audio devices to simply connect
+    SimplyConnectAPI.update_audio_devices_list(AudioDevices.get_list())
 
     # Connect to socket (pusher)
     pusher_client = PusherClient(host=config.pusher_host, app_key=config.pusher_app_key)
@@ -34,8 +42,6 @@ def main():
                                         callback_fail=lambda err: print(f"Failed to subscribe to private channel: {err}"))
 
     pusher_client.connect(on_connect_callback=on_connect)
-
-
 
 
     # Ustaw indeks mikrofonu

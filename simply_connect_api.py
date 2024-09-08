@@ -29,11 +29,12 @@ class SimplyConnectAPI:
         # Wczytaj plik audio i wyślij do API
         with open(audio_file_path, "rb") as audio_file:
             files = {
-                "audio": (audio_file_path, audio_file, "audio/wav")
+                "audio": (audio_file_path, audio_file, "audio/mp2t")
             }
 
             headers = {
                 "Authorization": f"Bearer {SimplyConnectAPI.api_key}",
+                "Accept": "application/json",
             }
 
             # Tworzenie danych jako osobny obiekt JSON
@@ -58,3 +59,15 @@ class SimplyConnectAPI:
             return response.json().get("token")
         except Exception as e:
             print(f"Bład logowania: {e}")
+
+    @staticmethod
+    def update_audio_devices_list(devices):
+        url = f"{SimplyConnectAPI.base_url}/audio/devices"
+        data = {
+            "devices": devices
+        }
+        try:
+            response = requests.put(url, headers=SimplyConnectAPI.get_headers(), json=data)
+        except Exception as e:
+            print("Błąd przesyłania listy urządzeń")
+            print(e)

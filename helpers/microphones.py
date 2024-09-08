@@ -1,3 +1,5 @@
+from time import sleep
+
 import sounddevice as sd
 
 def list_microphones():
@@ -14,4 +16,6 @@ def list_microphones():
             print(f"  Output latency (low, high): {device['default_low_output_latency']}, {device['default_high_output_latency']} seconds")
 
 if __name__ == '__main__':
-    list_microphones()
+    while True:
+        list_microphones()
+        sleep(5)
