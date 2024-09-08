@@ -36,5 +36,16 @@ class AudioDevices:
             #       f"Sample Rate: {device['default_samplerate']} Hz, UUID: {device_uuid}")
         return AudioDevices.devices
 
+    @staticmethod
+    def find_device_index_by_data(data, audio_type):
+        for audio_device in AudioDevices.devices:
+            if audio_device["uuid"] == data["uuid"] and audio_device["type"] == audio_type:
+                print("Audio device found by uuid")
+                return audio_device["index"]
 
+        for audio_device in AudioDevices.devices:
+            if audio_device["name"] == data["name"] and audio_device["type"] == audio_type:
+                print("Audio device found by name")
+                return audio_device["index"]
 
+        return None

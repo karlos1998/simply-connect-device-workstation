@@ -3,74 +3,47 @@ import sounddevice as sd
 import threading
 import time
 
+from pusher.util import channel_name_re
+
 import config
 from audio_devices import AudioDevices
 from pusher_client import PusherClient
 from simply_connect_api import SimplyConnectAPI
-from scipy.io.wavfile import write
 from audio_listener import AudioListener
+from single_device_worker import SingleDeviceWorker
 
-def dtmf_callback(detected_tones):
-    SimplyConnectAPI.send_dtmf_tone(detected_tones)
-
-
-def record_callback(audio_data_concat, is_talking):
-
-    # audio_file_path = "temp.ts"
-    # write(audio_file_path, 8000, audio_data_concat)
-
-    audio_file_path = "temp.wav"
-    write(audio_file_path, 8000, (audio_data_concat.flatten() * 32767).astype(np.int16))
-
-    SimplyConnectAPI.send_audio_fragment(audio_file_path, is_talking)
 
 def main():
 
     #Login to Simply Connect
-    login_token=SimplyConnectAPI.login()
+    SimplyConnectAPI.login()
 
     #Send input/output audio devices to simply connect
     SimplyConnectAPI.update_audio_devices_list(AudioDevices.get_list())
 
-    # Connect to socket (pusher)
+    #Get Devices list
+    devices = SimplyConnectAPI.get_devices()
+
+
+    # Configure socket (pusher)
     pusher_client = PusherClient(host=config.pusher_host, app_key=config.pusher_app_key)
-    pusher_client.set_auth_details(auth_url=SimplyConnectAPI.base_url + "/broadcasting/auth", bearer_token=login_token)
+    #Set channel authorize uth (laravel specific route)
+    pusher_client.set_auth_details(auth_url=SimplyConnectAPI.base_url + "/broadcasting/auth", bearer_token=SimplyConnectAPI.api_key)
 
+
+    #After pusher connected
     def on_connect():
-        pusher_client.subscribe_private("device.130147.call-status",
-                                        callback_success=lambda: print("Private channel subscription succeeded"),
-                                        callback_fail=lambda err: print(f"Failed to subscribe to private channel: {err}"))
+        for device in devices:
+            print("After socket connect action for device...")
+            print(device)
+            channel_name = "device." + device['device_id'].__str__() + ".call-status"
+            pusher_client.subscribe_private(channel_name=channel_name,
+                                            callback_success=lambda: SingleDeviceWorker( device ),
+                                            callback_fail=lambda err: print(f"[" + device['device_id'].__str__() + "] Failed to subscribe to private channel: {err}"))
 
+    #Connect with pusher
     pusher_client.connect(on_connect_callback=on_connect)
 
-
-    # Ustaw indeks mikrofonu
-    devices = sd.query_devices()
-    usb_microphone = next((device for device in devices if "USB Audio" in device['name'] and device['max_input_channels'] > 0), None)
-
-    if usb_microphone is None:
-        print("Nie znaleziono odpowiedniego mikrofonu USB z aktywnymi kanałami wejściowymi.")
-        return
-
-    usb_microphone_index = devices.index(usb_microphone)
-    print(f"Używanie mikrofonu: {usb_microphone['name']}")
-    print(f"Indeks urządzenia: {usb_microphone_index}")
-
-
-    audio_listener = AudioListener(microphone_index=usb_microphone_index, record_callback=record_callback, dtmf_callback=dtmf_callback)
-
-    audio_listener_thread = threading.Thread(target=audio_listener.record)
-    audio_listener_thread.daemon = True
-    audio_listener_thread.start()
-
-
-
-
-    try:
-        while True:
-            time.sleep(0.1)
-    except KeyboardInterrupt:
-        print("Zamykanie aplikacji...")
 
 if __name__ == "__main__":
     main()

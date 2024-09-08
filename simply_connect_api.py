@@ -2,8 +2,12 @@ import requests
 import config
 
 class SimplyConnectAPI:
-    api_key = 'TODO'
+
+    api_key = None
+
     base_url = config.server_url + "/workstation"
+
+    device_id = None
 
     @staticmethod
     def get_headers():
@@ -12,18 +16,22 @@ class SimplyConnectAPI:
             "Content-Type": "application/json"
         }
 
-    @staticmethod
-    def send_dtmf_tone(tone):
+    def get_headers_with_device_id(self):
+        headers = SimplyConnectAPI.get_headers()
+        headers["X-Device-Id"] = self.device_id
+        return headers
+
+
+    def send_dtmf_tone(self, tone):
         url = f"{SimplyConnectAPI.base_url}/tone"
         data = {"tone": tone}
         try:
-            response = requests.post(url, headers=SimplyConnectAPI.get_headers(), json=data)
+            response = requests.post(url, headers=self.get_headers_with_device_id(), json=data)
             response.raise_for_status()  # Sprawdź, czy wystąpił błąd
         except Exception as e:
             print(f"Błąd podczas wysyłania tonu DTMF: {e}")
 
-    @staticmethod
-    def send_audio_fragment(audio_file_path, detected_speech):
+    def send_audio_fragment(self, audio_file_path, detected_speech):
         url = f"{SimplyConnectAPI.base_url}/audio"
 
         # Wczytaj plik audio i wyślij do API
@@ -34,7 +42,8 @@ class SimplyConnectAPI:
 
             headers = {
                 "Authorization": f"Bearer {SimplyConnectAPI.api_key}",
-                "Accept": "application/json",
+                "Accept": "application/json", #todo - pobierac normalnie naglowki i dac jakies.. without content-type czy cos
+                "X-Device-Id": self.device_id,
             }
 
             # Tworzenie danych jako osobny obiekt JSON
@@ -56,7 +65,8 @@ class SimplyConnectAPI:
         data = {}
         try:
             response = requests.post(url, headers=SimplyConnectAPI.get_headers(), json=data)
-            return response.json().get("token")
+            SimplyConnectAPI.api_key = response.json().get("token")
+            return SimplyConnectAPI.api_key
         except Exception as e:
             print(f"Bład logowania: {e}")
 
@@ -71,3 +81,24 @@ class SimplyConnectAPI:
         except Exception as e:
             print("Błąd przesyłania listy urządzeń")
             print(e)
+
+    @staticmethod
+    def get_devices():
+        url = f"{SimplyConnectAPI.base_url}/devices"
+        try:
+            return requests.get(url, headers=SimplyConnectAPI.get_headers()).json()
+        except Exception as e:
+            print("Błąd podczas pobierania listy urządzeń")
+            print(e)
+
+    def update_device(self, input_audio_device_index, output_audio_device_index):
+        url = f"{SimplyConnectAPI.base_url}/device"
+        data = {
+            "input_audio_device_index": input_audio_device_index,
+            "output_audio_device_index": output_audio_device_index
+        }
+        try:
+            response = requests.patch(url, headers=self.get_headers_with_device_id(), json=data)
+            response.raise_for_status()  # Sprawdź, czy wystąpił błąd
+        except Exception as e:
+            print(f"Błąd podczas zaktualizowanych danych: {e}")
