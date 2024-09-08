@@ -1,15 +1,7 @@
-import numpy as np
-import sounddevice as sd
-import threading
-import time
-
-from pusher.util import channel_name_re
-
 import config
 from audio_devices import AudioDevices
 from pusher_client import PusherClient
 from simply_connect_api import SimplyConnectAPI
-from audio_listener import AudioListener
 from single_device_worker import SingleDeviceWorker
 
 
