@@ -1,4 +1,5 @@
 import threading
+import time
 
 import numpy as np
 from audio_devices import AudioDevices
@@ -68,4 +69,7 @@ class SingleDeviceWorker:
         print("Call status changed: " + self.call_status)
         if self.call_status == 'OFFHOOK':
             if self.audio_player:
-                self.audio_player.play("helpers/file.m4a")
+                self.audio_player.play("helpers/file.m4a", callback=lambda: print("Odtwrzanie dzwieku zakonczone."))
+        if self.call_status == 'IDLE':
+            if self.audio_player:
+                self.audio_player.stop()
