@@ -1,16 +1,15 @@
 import threading
 
 import numpy as np
-
 from audio_devices import AudioDevices
 from audio_listener import AudioListener
 from simply_connect_api import SimplyConnectAPI
 from scipy.io.wavfile import write
 
 class SingleDeviceWorker:
-    def __init__(self, device):
+    def __init__(self, device, pusher_client):
 
-        print("[" + device['device_id'].__str__() + "] Private channel subscription succeeded")
+        self.pusher_client = pusher_client
 
         print("Device audio devices:")
 
@@ -45,8 +44,10 @@ class SingleDeviceWorker:
             output_audio_device_index=self.output_audio_device_index,
         )
 
+        self.init_pusher_channel()
 
 
+    ##############################################
     def dtmf_callback(self, detected_tones):
         self.simply_connect_api_instance.send_dtmf_tone(detected_tones)
 
@@ -60,4 +61,17 @@ class SingleDeviceWorker:
         write(audio_file_path, 8000, (audio_data_concat.flatten() * 32767).astype(np.int16))
 
         self.simply_connect_api_instance.send_audio_fragment(audio_file_path, is_talking)
+    ##############################################
 
+
+    def init_pusher_channel(self):
+        channel_name = "device." + self.device_id + ".call-status"
+        device_private_channel = self.pusher_client.subscribe_private(channel_name=channel_name,
+                                        callback_success=lambda: print("[" + self.device_id+ "] Private channel subscription succeeded"),
+                                        callback_fail=lambda err: print(f"[" + self.device_id + "] Failed to subscribe to private channel: {err}"))
+
+        device_private_channel.bind("App\Events\CallStatusChanged", callback=self.call_status_changed)
+
+    def call_status_changed(self, data):
+        status = data.get("call", {}).get("status", None)
+        print("Call status changed: " + status)

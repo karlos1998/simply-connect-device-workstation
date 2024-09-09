@@ -4,6 +4,18 @@ import requests
 import threading
 import time
 
+class ChannelInstance:
+    def __init__(self, channel_name, callback_success, callback_fail):
+        self.channel_name = channel_name
+        self.callback_success = callback_success
+        self.callback_fail = callback_fail
+
+        self.bind_events = {}
+    def bind(self, event_name, callback):
+        print("Bind event: " + event_name + " for channel: " + self.channel_name)
+        self.bind_events[event_name] = callback
+        return self
+
 class PusherClient:
     def __init__(self, host, app_key):
         self.host = host
@@ -18,7 +30,7 @@ class PusherClient:
         self.on_connect_callback = None
 
         # Przechowywanie callbacków dla każdego kanału
-        self.callbacks = {}
+        self.channel_instances = {}
 
     def set_auth_details(self, auth_url, bearer_token):
         """
@@ -49,17 +61,17 @@ class PusherClient:
             if self.on_connect_callback:
                 self.on_connect_callback()
 
-        # Handle subscription success or failure
-        elif event == "pusher_internal:subscription_succeeded":
-            if channel in self.callbacks:
-                if self.callbacks[channel]["success"]:
-                    self.callbacks[channel]["success"]()
-
-        elif event == "pusher:subscription_error":
-            error_data = data.get("data", {})
-            if channel in self.callbacks:
-                if self.callbacks[channel]["fail"]:
-                    self.callbacks[channel]["fail"](error_data)
+        event_data = data.get("data", {})
+        event_data = json.loads(event_data) if isinstance(event_data, str) else event_data
+        if channel in self.channel_instances:
+            if event == "pusher_internal:subscription_succeeded":
+                if self.channel_instances[channel].callback_success:
+                    self.channel_instances[channel].callback_success()
+            elif event == "pusher:subscription_error":
+                if self.channel_instances[channel].callback_fail:
+                    self.channel_instances[channel].callback_fail(event_data)
+            elif self.channel_instances[channel].bind_events[event]:
+                self.channel_instances[channel].bind_events[event](event_data)
 
     def on_error(self, ws, error):
         """
@@ -139,42 +151,47 @@ class PusherClient:
             print(f"Authorization failed: {response.status_code}")
             return None
 
-    def subscribe_public(self, channel_name, callback_success=None, callback_fail=None):
-        """
-        Subscribes to a public channel with optional success and failure callbacks.
-        """
-        if self.ws:
-            self.callbacks[channel_name] = {
-                "success": callback_success,
-                "fail": callback_fail
-            }
-
-            subscribe_data = {
-                "event": "pusher:subscribe",
-                "data": {
-                    "channel": channel_name
-                }
-            }
-            self.ws.send(json.dumps(subscribe_data))
-            print(f"Subscribed to public channel: {channel_name}")
-        else:
-            error_json = {"error": "No active WebSocket connection"}
-            print("No active WebSocket connection")
-            if callback_fail:
-                callback_fail(error_json)
+    # TODO - change after subscribe_private refactor
+    # def subscribe_public(self, channel_name, callback_success=None, callback_fail=None):
+    #     """
+    #     Subscribes to a public channel with optional success and failure channel_instances.
+    #     """
+    #     if self.ws:
+    #         self.channel_instances[channel_name] = {
+    #             "success": callback_success,
+    #             "fail": callback_fail
+    #         }
+    #
+    #         subscribe_data = {
+    #             "event": "pusher:subscribe",
+    #             "data": {
+    #                 "channel": channel_name
+    #             }
+    #         }
+    #         self.ws.send(json.dumps(subscribe_data))
+    #         print(f"Subscribed to public channel: {channel_name}")
+    #     else:
+    #         error_json = {"error": "No active WebSocket connection"}
+    #         print("No active WebSocket connection")
+    #         if callback_fail:
+    #             callback_fail(error_json)
 
     def subscribe_private(self, channel_name, callback_success=None, callback_fail=None):
         """
-        Subscribes to a private channel after authorization, with optional success and failure callbacks.
+        Subscribes to a private channel after authorization, with optional success and failure channel_instances.
         """
+
+        private_channel = f"private-{channel_name}"
+
+        channel_instance = ChannelInstance(
+            channel_name=private_channel,
+            callback_success=callback_success,
+            callback_fail=callback_fail
+        )
+
         if self.ws:
 
-            private_channel = f"private-{channel_name}"
-
-            self.callbacks[private_channel] = {
-                "success": callback_success,
-                "fail": callback_fail
-            }
+            self.channel_instances[private_channel] = channel_instance
 
             # Retrieve the authorization token
             auth_token = self.get_auth_token(channel_name)
@@ -199,3 +216,5 @@ class PusherClient:
             print("No active WebSocket connection")
             if callback_fail:
                 callback_fail(error_json)
+
+        return channel_instance

@@ -28,10 +28,8 @@ def main():
         for device in devices:
             print("After socket connect action for device...")
             print(device)
-            channel_name = "device." + device['device_id'].__str__() + ".call-status"
-            pusher_client.subscribe_private(channel_name=channel_name,
-                                            callback_success=lambda: SingleDeviceWorker( device ),
-                                            callback_fail=lambda err: print(f"[" + device['device_id'].__str__() + "] Failed to subscribe to private channel: {err}"))
+            SingleDeviceWorker( device, pusher_client )
+
 
     #Connect with pusher
     pusher_client.connect(on_connect_callback=on_connect)
