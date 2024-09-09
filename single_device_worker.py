@@ -3,6 +3,7 @@ import threading
 import numpy as np
 from audio_devices import AudioDevices
 from audio_listener import AudioListener
+from audio_player import AudioPlayer
 from simply_connect_api import SimplyConnectAPI
 
 class SingleDeviceWorker:
@@ -22,24 +23,29 @@ class SingleDeviceWorker:
 
         self.call_status = 'IDLE'
 
+        # AUDIO INPUT
         input_audio_device = device["audio_devices"]["input"] if "input" in device["audio_devices"] else None
         if input_audio_device:
             self.input_audio_device_index = AudioDevices.find_device_index_by_data(input_audio_device, "input")
             if self.input_audio_device_index:
                 print("Input audio index found: " + self.input_audio_device_index.__str__())
                 audio_listener = AudioListener(
-                    # microphone_index=self.input_audio_device_index,
-                    # record_callback=self.record_callback,
-                    # dtmf_callback=self.dtmf_callback
                     device_worker=self
                 )
                 audio_listener_thread = threading.Thread(target=audio_listener.record)
                 audio_listener_thread.daemon = True
                 audio_listener_thread.start()
 
+        # AUDIO OUTPUT
+        audio_player = None
         output_audio_device = device["audio_devices"]["output"] if "output" in device["audio_devices"] else None
         if output_audio_device:
             self.output_audio_device_index = AudioDevices.find_device_index_by_data(output_audio_device, "output")
+            if self.output_audio_device_index:
+                print("Output audio index found: " + self.output_audio_device_index.__str__())
+                self.audio_player = AudioPlayer(
+                    output_device_index=self.output_audio_device_index,
+                )
 
         self.simply_connect_api_instance.update_device(
             input_audio_device_index=self.input_audio_device_index,
@@ -60,3 +66,6 @@ class SingleDeviceWorker:
     def call_status_changed(self, data):
         self.call_status = data.get("call", {}).get("status", None)
         print("Call status changed: " + self.call_status)
+        if self.call_status == 'OFFHOOK':
+            if self.audio_player:
+                self.audio_player.play("helpers/file.m4a")
