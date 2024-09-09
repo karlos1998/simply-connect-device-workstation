@@ -1,8 +1,10 @@
 from time import sleep
 
+import numpy as np
 import sounddevice as sd
 from audio_recorder import AudioRecorder
 from dtmf import DTMFDetector
+from scipy.io.wavfile import write
 
 SAMPLE_RATE = 8000 #todo
 BLOCK_SIZE = 1024
@@ -12,24 +14,55 @@ class AudioListener:
 
     def __init__(
             self,
-            microphone_index,
-            dtmf_callback,
-            record_callback
+            # microphone_index,
+            # dtmf_callback,
+            # record_callback
+            device_worker
     ):
-        self.microphone_index = microphone_index
+        # self.microphone_index = microphone_index
+        #
+        # self.dtmf_service = DTMFDetector(
+        #     callback=dtmf_callback,
+        # )
+        #
+        # self.recorder_service = AudioRecorder(
+        #     callback=record_callback
+        # )
+
+        self.device_worker = device_worker
 
         self.dtmf_service = DTMFDetector(
-            callback=dtmf_callback,
+            callback=self.dtmf_callback
         )
 
         self.recorder_service = AudioRecorder(
-            callback=record_callback
+            callback=self.record_callback
         )
 
     def record(self):
-        with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, callback=self.audio_callback, blocksize=BLOCK_SIZE, device=self.microphone_index):
+        with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, callback=self.audio_callback, blocksize=BLOCK_SIZE, device=self.device_worker.input_audio_device_index):
             self.recorder_service.loop_checker()
 
     def audio_callback(self, indata, frames, time_info, status):
+
+        if not self.device_worker.call_status == "OFFHOOK":
+            return #todo - trzeba poprawic dzialanie tego. status rozpoczenia rozmowy "OFFHOOK" przychodzi z kilku sekundowym opoznieniem, dlatego poczatek rozmwowy jest uciety...
+
         self.dtmf_service.audio_callback(indata, frames, time_info, status)
         self.recorder_service.audio_callback(indata, frames, time_info, status)
+
+
+    #####################
+    def dtmf_callback(self, detected_tones):
+        self.device_worker.simply_connect_api_instance.send_dtmf_tone(detected_tones)
+
+
+    def record_callback(self, audio_data_concat, is_talking):
+
+        # audio_file_path = "temp.ts"
+        # write(audio_file_path, 8000, audio_data_concat)
+
+        audio_file_path = self.device_worker.device_id + "-temp.wav"
+        write(audio_file_path, 8000, (audio_data_concat.flatten() * 32767).astype(np.int16))
+
+        self.device_worker.simply_connect_api_instance.send_audio_fragment(audio_file_path, is_talking)
