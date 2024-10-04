@@ -5,10 +5,13 @@ import numpy as np
 from audio_devices import AudioDevices
 from audio_listener import AudioListener
 from audio_player import AudioPlayer
+from conversation_tree import ConversationTree
 from simply_connect_api import SimplyConnectAPI
 
 class SingleDeviceWorker:
     def __init__(self, device, pusher_client):
+
+        self.conversation_tree = None
 
         self.pusher_client = pusher_client
 
@@ -68,8 +71,19 @@ class SingleDeviceWorker:
         self.call_status = data.get("call", {}).get("status", None)
         print("Call status changed: " + self.call_status)
         if self.call_status == 'OFFHOOK':
+
             if self.audio_player:
-                self.audio_player.play("helpers/file.m4a", callback=lambda: print("Odtwrzanie dzwieku zakonczone."))
+                self.audio_player.stop()
+
+            if self.conversation_tree:
+                self.conversation_tree.break_tree()
+
+            if self.audio_player:
+                node = self.simply_connect_api_instance.get_first_conversation_tree_node()
+                if node is not None:
+                    self.conversation_tree = ConversationTree(self)
+                    self.conversation_tree.run_node(node)
+
         if self.call_status == 'IDLE':
             if self.audio_player:
                 self.audio_player.stop()

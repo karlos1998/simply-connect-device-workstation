@@ -23,7 +23,7 @@ class SimplyConnectAPI:
 
 
     def send_dtmf_tone(self, tone):
-        url = f"{SimplyConnectAPI.base_url}/tone"
+        url = f"{SimplyConnectAPI.base_url}/current-call/tone"
         data = {"tone": tone}
         try:
             response = requests.post(url, headers=self.get_headers_with_device_id(), json=data)
@@ -32,7 +32,7 @@ class SimplyConnectAPI:
             print(f"Błąd podczas wysyłania tonu DTMF: {e}")
 
     def send_audio_fragment(self, audio_file_path, detected_speech):
-        url = f"{SimplyConnectAPI.base_url}/audio"
+        url = f"{SimplyConnectAPI.base_url}/current-call/audio"
 
         # Wczytaj plik audio i wyślij do API
         with open(audio_file_path, "rb") as audio_file:
@@ -72,7 +72,7 @@ class SimplyConnectAPI:
 
     @staticmethod
     def update_audio_devices_list(devices):
-        url = f"{SimplyConnectAPI.base_url}/audio/devices"
+        url = f"{SimplyConnectAPI.base_url}/audio-devices"
         data = {
             "devices": devices
         }
@@ -102,3 +102,22 @@ class SimplyConnectAPI:
             response.raise_for_status()  # Sprawdź, czy wystąpił błąd
         except Exception as e:
             print(f"Błąd podczas zaktualizowanych danych: {e}")
+
+    def get_first_conversation_tree_node(self):
+        url = f"{SimplyConnectAPI.base_url}/current-call/current-conversation-tree"
+        try:
+            response = requests.get(url, headers=self.get_headers_with_device_id())
+            response.raise_for_status()  # Sprawdź, czy wystąpił błąd
+            return response.json().get("node")
+        except Exception as e:
+            print(f"Błąd podczas pobierania pierwszego node: {e}")
+
+    def go_to_next_conversation_tree_step(self, waiting_time):
+        url = f"{SimplyConnectAPI.base_url}/current-call/conversation-tree-next-step"
+        data = {"waiting_time": waiting_time}
+        try:
+            response = requests.post(url, headers=self.get_headers_with_device_id(), json=data)
+            response.raise_for_status()
+            return response.json().get("node")
+        except Exception as e:
+            print(f"Błąd podczas przechodzenia do kolejnego node: {e}")
