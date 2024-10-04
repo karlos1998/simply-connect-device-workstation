@@ -19,33 +19,44 @@ class ConversationTree:
 
         file_audio = node.get("fileAudio")
         if file_audio is not None:
-            self.device_worker.audio_player.play(file_audio.get("url"), callback=self.audio_stopped)
+            self.device_worker.audio_player.play(file_audio.get("url"), callback=lambda: self.audio_stopped(node.get("id")))
         elif node.get("type") == "output":
             print("Rozmowa zostala zakonczona - node zwrocil type output")
             pass  # todo - rozmowa zakonczona. serwer sam ja zamknie z telefonem, ale czy tu trzeba cos robic?
         else:
-            self.go_to_next_step()
+            self.go_to_next_step(node.get("id"))
 
-    def audio_stopped(self):
+    def audio_stopped(self, current_node_id):
         print("Odtwrzanie dzwieku zakonczone.")
         if self.device_worker.call_status == 'OFFHOOK':
             print("Pora na kolejny krok")
-            self.go_to_next_step()
+            self.go_to_next_step(current_node_id)
         else:
             print("Status rozmowy zmienil sie - zakonczono drzewko.")
 
-    def go_to_next_step(self):
+    def go_to_next_step(self, current_node_id):
         self.stop_loop = False
 
-        for i in range(1, 62):
+        time_start = time.time()
+        time_diff = 0
+
+        while time_diff < 62:
+
+            time_diff = int(time.time() - time_start)
+
             if self.broken or self.stop_loop:
                 return
 
-            node = self.device_worker.simply_connect_api_instance.go_to_next_conversation_tree_step(i)
+            try:
+                node = self.device_worker.simply_connect_api_instance.go_to_next_conversation_tree_step(time_diff, current_node_id)
+            except Exception as e:
+                break
+
             if node is not None:
                 self.run_node(node)
                 break
-            time.sleep(1)
+
+            time.sleep(0.9)
 
     def go_to_next_step_by_dtmf(self, detected_tone):
         print("go to next step by dtmf: " + detected_tone + ", " + ("is_playing" if self.device_worker.audio_player.is_playing else "is_stopped"))

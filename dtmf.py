@@ -12,7 +12,7 @@ DTMF_FREQUENCIES = {
     (941, 1209): '*', (941, 1336): '0', (941, 1477): '#'
 }
 
-MIN_TONE_DURATION = 0.01  # Minimalny czas trwania tonu (50 ms)
+MIN_TONE_DURATION = 0.01  # Minimalny czas trwania tonu
 
 def calculate_rms(data):
     return np.sqrt(np.mean(np.square(data)))

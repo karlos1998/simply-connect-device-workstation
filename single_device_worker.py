@@ -77,10 +77,11 @@ class SingleDeviceWorker:
 
             if self.conversation_tree:
                 self.conversation_tree.break_tree()
+                self.conversation_tree = None
 
             if self.audio_player:
                 node = self.simply_connect_api_instance.get_first_conversation_tree_node()
-                if node is not None:
+                if node is not None and self.conversation_tree is None:
                     self.conversation_tree = ConversationTree(self)
                     self.conversation_tree.run_node(node)
 

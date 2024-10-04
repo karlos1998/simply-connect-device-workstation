@@ -32,33 +32,34 @@ class SimplyConnectAPI:
         except Exception as e:
             print(f"Błąd podczas wysyłania tonu DTMF: {e}")
 
-    def send_audio_fragment(self, audio_file_path, detected_speech):
+    def send_audio_fragment(self, audio_file_path, detected_speech, audio_is_playing):
         url = f"{SimplyConnectAPI.base_url}/current-call/audio"
+        params = {
+            "detected_speech": "1" if detected_speech else "0",
+            "audio_is_playing": "1" if audio_is_playing else "0"
+        }
+        url_with_params = f"{url}?detected_speech={params['detected_speech']}&audio_is_playing={params['audio_is_playing']}"
 
-        # Wczytaj plik audio i wyślij do API
         with open(audio_file_path, "rb") as audio_file:
             files = {
-                "audio": (audio_file_path, audio_file, "audio/mp2t")
+                "audio": (audio_file_path, audio_file, "audio/mp2t"),
             }
 
             headers = {
                 "Authorization": f"Bearer {SimplyConnectAPI.api_key}",
-                "Accept": "application/json", #todo - pobierac normalnie naglowki i dac jakies.. without content-type czy cos
+                "Accept": "application/json",
                 "X-Device-Id": self.device_id,
             }
 
-            # Tworzenie danych jako osobny obiekt JSON
-            data = {
-                "detected_speech": 1 if detected_speech else 0
-            }
-
             try:
-                # Użyj `files` do przesyłania pliku audio oraz `data` do przesyłania danych
-                response = requests.post(url, headers=headers, files=files, data=data)
-                response_data = response.json()
-                print(response_data)
+                # Przesyłanie pliku audio z parametrami GET w URL
+                response = requests.post(url_with_params, headers=headers, files=files)
+                response.raise_for_status()
+                # response_data = response.json()
+                # print(response_data)
             except Exception as e:
                 print("Błąd podczas wysyłania audio do serwera:", e)
+
 
     @staticmethod
     def login():
@@ -113,12 +114,9 @@ class SimplyConnectAPI:
         except Exception as e:
             print(f"Błąd podczas pobierania pierwszego node: {e}")
 
-    def go_to_next_conversation_tree_step(self, waiting_time):
+    def go_to_next_conversation_tree_step(self, waiting_time, current_node_id):
         url = f"{SimplyConnectAPI.base_url}/current-call/conversation-tree-next-step"
-        data = {"waiting_time": waiting_time}
-        try:
-            response = requests.post(url, headers=self.get_headers_with_device_id(), json=data)
-            response.raise_for_status()
-            return response.json().get("node")
-        except Exception as e:
-            print(f"Błąd podczas przechodzenia do kolejnego node: {e}")
+        data = {"waiting_time": waiting_time, "current_node_id": current_node_id}
+        response = requests.post(url, headers=self.get_headers_with_device_id(), json=data)
+        response.raise_for_status()
+        return response.json().get("node")

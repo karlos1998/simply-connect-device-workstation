@@ -66,4 +66,4 @@ class AudioListener:
         audio_file_path = self.device_worker.device_id + "-temp.wav"
         write(audio_file_path, 8000, (audio_data_concat.flatten() * 32767).astype(np.int16))
 
-        self.device_worker.simply_connect_api_instance.send_audio_fragment(audio_file_path, is_talking)
+        self.device_worker.simply_connect_api_instance.send_audio_fragment(audio_file_path, is_talking, self.device_worker.audio_player.is_playing)

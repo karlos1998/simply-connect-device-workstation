@@ -62,8 +62,9 @@ class AudioPlayer:
                         stream.write(samples)
                         sd.wait()
                     except sd.PortAudioError as e:
-                        if e.args[0] != -9986:  # blad po przerwaniu odtwarzania metoda .stop() - trzeba zignorowac
-                            raise e
+                        # if e.args[0] != -9986:  # blad po przerwaniu odtwarzania metoda .stop() - trzeba zignorowac
+                        #     raise e
+                        pass
 
             finally:
                 self.is_playing = False
