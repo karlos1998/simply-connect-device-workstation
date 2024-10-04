@@ -22,12 +22,13 @@ class SimplyConnectAPI:
         return headers
 
 
-    def send_dtmf_tone(self, tone):
+    def send_dtmf_tone(self, tone, audio_is_playing):
         url = f"{SimplyConnectAPI.base_url}/current-call/tone"
-        data = {"tone": tone}
+        data = {"tone": tone, "audio_is_playing": audio_is_playing}
         try:
             response = requests.post(url, headers=self.get_headers_with_device_id(), json=data)
             response.raise_for_status()  # Sprawdź, czy wystąpił błąd
+            return response.json().get("node")
         except Exception as e:
             print(f"Błąd podczas wysyłania tonu DTMF: {e}")
 

@@ -53,8 +53,9 @@ class AudioListener:
 
 
     #####################
-    def dtmf_callback(self, detected_tones):
-        self.device_worker.simply_connect_api_instance.send_dtmf_tone(detected_tones)
+    def dtmf_callback(self, detected_tone):
+        #self.device_worker.simply_connect_api_instance.send_dtmf_tone(detected_tones)
+        self.device_worker.conversation_tree.go_to_next_step_by_dtmf(detected_tone)
 
 
     def record_callback(self, audio_data_concat, is_talking):
