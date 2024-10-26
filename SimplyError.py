@@ -1,0 +1,2 @@
+class SimplyError(Exception):
+    pass

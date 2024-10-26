@@ -1,5 +1,7 @@
 import requests
 import config
+from SimplyError import SimplyError
+
 
 class SimplyConnectAPI:
 
@@ -62,15 +64,17 @@ class SimplyConnectAPI:
 
 
     @staticmethod
-    def login():
+    def login(auth_key):
         url = f"{SimplyConnectAPI.base_url}/login"
-        data = {}
+        data = {
+            "auth_key": auth_key
+        }
         try:
             response = requests.post(url, headers=SimplyConnectAPI.get_headers(), json=data)
             SimplyConnectAPI.api_key = response.json().get("token")
             return SimplyConnectAPI.api_key
         except Exception as e:
-            print(f"Bład logowania: {e}")
+            raise SimplyError(f"Bład logowania: {e}")
 
     @staticmethod
     def update_audio_devices_list(devices):
@@ -120,3 +124,14 @@ class SimplyConnectAPI:
         response = requests.post(url, headers=self.get_headers_with_device_id(), json=data)
         response.raise_for_status()
         return response.json().get("node")
+
+    def get_conversation_tree_node_additional_audio(self):
+        url = f"{SimplyConnectAPI.base_url}/current-call/conversation-tree-node-additional-audio"
+        try:
+            response = requests.get(url, headers=self.get_headers_with_device_id())
+            response.raise_for_status()
+            if response.status_code == 200: #200 - has file path, 201 - no content (no file path :D )
+                return response.json().get("file_path")
+            return None
+        except Exception as e:
+            return None
