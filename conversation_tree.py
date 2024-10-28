@@ -49,14 +49,20 @@ class ConversationTree:
     def audio_stopped(self, current_node_id):
         print("Odtwrzanie dzwieku zakonczone.")
         if self.device_worker.call_status == 'OFFHOOK':
-            if self.additional_file_path is not None:
+            if self.additional_file_processing is True:
                 tmp_time=time.time()
-                while self.additional_file_processing and (time.time() - tmp_time) < 15:
+                while self.additional_file_processing is True and (time.time() - tmp_time) < 15:
                     print("Czekam az additional file skonczy processing...")
                     time.sleep(0.1)
+
+            if self.additional_file_path and self.additional_file_processing is False:
                 print("uruchamiam dodatkowy plik audio dla node")
                 self.device_worker.audio_player.play(self.additional_file_path, callback=lambda: self.audio_stopped(current_node_id))
                 self.additional_file_path = None
+            elif self.additional_file_processing is True:
+                print("Warning.... Chcialem uruchomic additional file, ale za dlugo to trwalo, wiec pomijam") #todo! moze powinno przerywac rozmowe?
+                print("Wiec pora na kolejny krok")
+                self.go_to_next_step(current_node_id)
             else:
                 print("Pora na kolejny krok")
                 self.go_to_next_step(current_node_id)
