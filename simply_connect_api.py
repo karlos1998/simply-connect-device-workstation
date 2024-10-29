@@ -72,6 +72,8 @@ class SimplyConnectAPI:
         try:
             response = requests.post(url, headers=SimplyConnectAPI.get_headers(), json=data)
             SimplyConnectAPI.api_key = response.json().get("token")
+            config.pusher_app_key = response.json().get("socketConfig")['appKey']
+            config.pusher_host = response.json().get("socketConfig")['host']
             return SimplyConnectAPI.api_key
         except Exception as e:
             raise SimplyError(f"Bład logowania: {e}")

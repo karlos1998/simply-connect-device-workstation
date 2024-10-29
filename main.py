@@ -26,9 +26,11 @@ def main():
         #Set channel authorize uth (laravel specific route)
         pusher_client.set_auth_details(auth_url=SimplyConnectAPI.base_url + "/broadcasting/auth", bearer_token=SimplyConnectAPI.api_key)
 
-
         #After pusher connected
         def on_connect():
+
+            pusher_client.subscribe_presence("work-stations-online")
+
             for device in devices:
                 print("After socket connect action for device...")
                 print(device)

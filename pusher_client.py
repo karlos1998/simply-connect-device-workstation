@@ -115,7 +115,7 @@ class PusherClient:
         def ping():
             while self.ws and self.ws.sock and self.ws.sock.connected:
                 self.ws.send(json.dumps({"event": "pusher:ping", "data": {}}))
-                print("Ping sent")
+                # print("Ping sent")
                 time.sleep(self.ping_interval)
 
         self.ping_thread = threading.Thread(target=ping)
@@ -129,7 +129,7 @@ class PusherClient:
         if self.ping_thread and self.ping_thread.is_alive():
             self.ping_thread.join()
 
-    def get_auth_token(self, channel_name):
+    def get_auth_data(self, channel_name):
         """
         Sends an authorization request to the set URL and retrieves the token.
         """
@@ -139,14 +139,14 @@ class PusherClient:
         }
         data = {
             "socket_id": self.socket_id,
-            "channel_name": f"private-{channel_name}"
+            "channel_name": f"{channel_name}"
         }
 
         response = requests.post(self.auth_url, headers=headers, json=data)
 
         if response.status_code == 200:
             auth_data = response.json()
-            return auth_data["auth"]
+            return auth_data
         else:
             print(f"Authorization failed: {response.status_code}")
             return None
@@ -176,41 +176,24 @@ class PusherClient:
     #         if callback_fail:
     #             callback_fail(error_json)
 
-    def subscribe_private(self, channel_name, callback_success=None, callback_fail=None):
-        """
-        Subscribes to a private channel after authorization, with optional success and failure channel_instances.
-        """
-
-        private_channel = f"private-{channel_name}"
-
+    def subscribe_channel_instance(self, data, channel_name, callback_success=None, callback_fail=None):
         channel_instance = ChannelInstance(
-            channel_name=private_channel,
+            channel_name=channel_name,
             callback_success=callback_success,
             callback_fail=callback_fail
         )
 
         if self.ws:
 
-            self.channel_instances[private_channel] = channel_instance
+            self.channel_instances[channel_name] = channel_instance
 
-            # Retrieve the authorization token
-            auth_token = self.get_auth_token(channel_name)
-            if auth_token:
-                subscribe_data = {
-                    "event": "pusher:subscribe",
-                    "data": {
-                        "auth": auth_token,
-                        # Additional user data can be added here
-                        "channel": private_channel
-                    }
-                }
-                self.ws.send(json.dumps(subscribe_data))
-                print(f"Subscribed to private channel: {private_channel}")
-            else:
-                error_json = {"error": "Authorization failed"}
-                print("Authorization failed")
-                if callback_fail:
-                    callback_fail(error_json)
+            subscribe_data = {
+                "event": "pusher:subscribe",
+                "data": { **{"channel": channel_name}, **data }
+            }
+            self.ws.send(json.dumps(subscribe_data))
+            print(f"Subscribed to channel: {channel_name}")
+
         else:
             error_json = {"error": "No active WebSocket connection"}
             print("No active WebSocket connection")
@@ -218,3 +201,44 @@ class PusherClient:
                 callback_fail(error_json)
 
         return channel_instance
+
+    def subscribe_private(self, channel_name, callback_success=None, callback_fail=None):
+        """
+        Subscribes to a private channel after authorization, with optional success and failure channel_instances.
+        """
+
+        private_channel = f"private-{channel_name}"
+
+        # Retrieve the authorization token
+        auth_data = self.get_auth_data(private_channel)
+
+        if auth_data:
+            return self.subscribe_channel_instance(auth_data, private_channel, callback_success, callback_fail)
+        else:
+            error_json = {"error": "Authorization failed"}
+            print("Authorization failed")
+            if callback_fail:
+                callback_fail(error_json)
+
+            return self.subscribe_channel_instance(private_channel, callback_success, callback_fail)
+
+
+    def subscribe_presence(self, channel_name, callback_success=None, callback_fail=None):
+        """
+        Subscribes to a presence channel after authorization, with optional success and failure channel_instances.
+        """
+
+        private_channel = f"presence-{channel_name}"
+
+        # Retrieve the authorization token
+        auth_data = self.get_auth_data(private_channel)
+
+        if auth_data:
+            return self.subscribe_channel_instance(auth_data, private_channel, callback_success, callback_fail)
+        else:
+            error_json = {"error": "Authorization failed"}
+            print("Authorization failed")
+            if callback_fail:
+                callback_fail(error_json)
+
+            return self.subscribe_channel_instance(private_channel, callback_success, callback_fail)

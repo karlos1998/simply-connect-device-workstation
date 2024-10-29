@@ -3,9 +3,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-pusher_host = os.getenv('PUSHER_HOST')
-pusher_app_key = os.getenv('PUSHER_APP_KEY')
+pusher_host = ''
+pusher_app_key = ''
 
-server_url = os.getenv('SERVER_URL')
+server_url = os.getenv('SERVER_URL', 'https://panel.simply-connect.ovh')
 
 auth_key=os.getenv('AUTH_KEY')
