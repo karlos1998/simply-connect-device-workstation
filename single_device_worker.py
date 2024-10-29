@@ -28,34 +28,35 @@ class SingleDeviceWorker:
 
         self.call_status = 'IDLE'
 
-        # AUDIO INPUT
-        input_audio_device = device["audio_devices"]["input"] if "input" in device["audio_devices"] else None
-        if input_audio_device:
-            self.input_audio_device_index = AudioDevices.find_device_index_by_data(input_audio_device, "input")
-            if self.input_audio_device_index:
-                print("Input audio index found: " + self.input_audio_device_index.__str__())
-                audio_listener = AudioListener(
-                    device_worker=self
-                )
-                audio_listener_thread = threading.Thread(target=audio_listener.record)
-                audio_listener_thread.daemon = True
-                audio_listener_thread.start()
 
-        # AUDIO OUTPUT
-        audio_player = None
-        output_audio_device = device["audio_devices"]["output"] if "output" in device["audio_devices"] else None
-        if output_audio_device:
-            self.output_audio_device_index = AudioDevices.find_device_index_by_data(output_audio_device, "output")
-            if self.output_audio_device_index:
-                print("Output audio index found: " + self.output_audio_device_index.__str__())
-                self.audio_player = AudioPlayer(
-                    output_device_index=self.output_audio_device_index,
-                )
+        if device["audio_devices"]:
+            # AUDIO INPUT
+            input_audio_device = device["audio_devices"]["input"] if "input" in device["audio_devices"] else None
+            if input_audio_device:
+                self.input_audio_device_index = AudioDevices.find_device_index_by_data(input_audio_device, "input")
+                if self.input_audio_device_index:
+                    print("Input audio index found: " + self.input_audio_device_index.__str__())
+                    audio_listener = AudioListener(
+                        device_worker=self
+                    )
+                    audio_listener_thread = threading.Thread(target=audio_listener.record)
+                    audio_listener_thread.daemon = True
+                    audio_listener_thread.start()
 
-        self.simply_connect_api_instance.update_device(
-            input_audio_device_index=self.input_audio_device_index,
-            output_audio_device_index=self.output_audio_device_index,
-        )
+            # AUDIO OUTPUT
+            output_audio_device = device["audio_devices"]["output"] if "output" in device["audio_devices"] else None
+            if output_audio_device:
+                self.output_audio_device_index = AudioDevices.find_device_index_by_data(output_audio_device, "output")
+                if self.output_audio_device_index:
+                    print("Output audio index found: " + self.output_audio_device_index.__str__())
+                    self.audio_player = AudioPlayer(
+                        output_device_index=self.output_audio_device_index,
+                    )
+
+            self.simply_connect_api_instance.update_device(
+                input_audio_device_index=self.input_audio_device_index,
+                output_audio_device_index=self.output_audio_device_index,
+            )
 
         self.init_pusher_channel()
 
