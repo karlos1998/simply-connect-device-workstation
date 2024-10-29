@@ -24,7 +24,7 @@ function start_background {
 }
 
 function install_crontab {
-    CRON_JOB="@reboot cd $REPO_DIR && git pull && nohup $PYTHON_EXEC $MAIN_SCRIPT > /dev/null 2>&1 &"
+    CRON_JOB="@reboot cd $REPO_DIR && git pull && screen $PYTHON_EXEC $MAIN_SCRIPT > /dev/null 2>&1 &"
 
     # Sprawdź, czy zadanie już istnieje w crontab
     if crontab -l | grep -Fxq "$CRON_JOB"; then
@@ -33,6 +33,8 @@ function install_crontab {
         # Dodaj zadanie do crontab, jeśli jeszcze go nie ma
         (crontab -l; echo "$CRON_JOB") | crontab -
         echo "Crontab entry added: Application will start 1 minute after reboot."
+
+        sudo apt-get install -y screen
     fi
 }
 
