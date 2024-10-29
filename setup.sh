@@ -24,7 +24,7 @@ function start_background {
 }
 
 function install_crontab {
-    CRON_JOB="@reboot cd $REPO_DIR && git pull && nohup $PYTHON_EXEC $MAIN_SCRIPT > /dev/null 2>&1 &"
+    CRON_JOB="@reboot cd $REPO_DIR && git fetch && git pull && nohup $PYTHON_EXEC $MAIN_SCRIPT > /dev/null 2>&1 &"
 
     # Sprawdź, czy zadanie już istnieje w crontab
     if crontab -l | grep -Fxq "$CRON_JOB"; then
