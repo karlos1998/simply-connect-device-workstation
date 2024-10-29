@@ -15,7 +15,8 @@ class SingleDeviceWorker:
 
         self.pusher_client = pusher_client
 
-        print("Device audio devices:")
+        print("Loaded device: ")
+        print(device)
 
         self.device_id = device["device_id"].__str__()
 
