@@ -1,16 +1,13 @@
 from threading import Thread
 from time import sleep
-
 import sounddevice as sd
 import uuid
 
 class AudioDevices:
-
     devices = []
 
     @staticmethod
     def __generate_uuid(device):
-        # Generowanie UUID na podstawie bardziej szczegółowych właściwości urządzenia
         unique_string = (
             f"{device['name']}-{device['hostapi']}-"
             f"{device['max_input_channels']}-{device['max_output_channels']}-"
@@ -25,15 +22,18 @@ class AudioDevices:
         devices = sd.query_devices()
         AudioDevices.devices = []
         for i, device in enumerate(devices):
-            device_type = "output" if device['max_output_channels'] > 0 else "input"
+            if device['max_input_channels'] > 0 and device['max_output_channels'] > 0:
+                device_type = "hybrid"
+            elif device['max_input_channels'] > 0:
+                device_type = "input"
+            else:
+                device_type = "output"
+
             device_uuid = AudioDevices.__generate_uuid(device)
             device["type"] = device_type
             device["uuid"] = device_uuid
+            device["index"] = i  # Dodajemy index urządzenia
             AudioDevices.devices.append(device)
-            # print(device)
-            # print(f"{i}: {device['name']}, Typ: {device_type}, "
-            #       f"Channels: {device['max_output_channels']} out / {device['max_input_channels']} in, "
-            #       f"Sample Rate: {device['default_samplerate']} Hz, UUID: {device_uuid}")
         return AudioDevices.devices
 
     @staticmethod
