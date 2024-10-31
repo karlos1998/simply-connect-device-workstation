@@ -1,7 +1,7 @@
 #!/bin/bash
 
 REPO_DIR="$(pwd)"
-GIT_REPO="https://github.com/yourusername/simply-connect-device-workstation.git"
+GIT_REPO="https://github.com/karlos1998/simply-connect-device-workstation"
 PYTHON_EXEC="python3"
 MAIN_SCRIPT="main.py"
 
@@ -25,14 +25,10 @@ function start_background {
 }
 
 function install_crontab {
-    # Komenda do uruchomienia setup.sh z argumentem start-background po restarcie
     CRON_JOB="@reboot cd $REPO_DIR && ./setup.sh start-background"
-
-    # Sprawdź, czy zadanie już istnieje w crontab
     if crontab -l | grep -Fxq "$CRON_JOB"; then
         echo "Crontab entry already exists: Application is set to start 1 minute after reboot."
     else
-        # Dodaj zadanie do crontab, jeśli jeszcze go nie ma
         (crontab -l; echo "$CRON_JOB") | crontab -
         echo "Crontab entry added: Application will start 1 minute after reboot."
     fi
@@ -41,6 +37,22 @@ function install_crontab {
 function update_repo {
     echo "Updating repository..."
     git pull
+}
+
+function check_background {
+    if pgrep -f "$MAIN_SCRIPT" > /dev/null; then
+        echo "Application is running in background."
+    else
+        echo "Application is not running in background."
+    fi
+}
+
+function stop_background {
+    if pkill -f "$MAIN_SCRIPT"; then
+        echo "Application stopped."
+    else
+        echo "Application is not running."
+    fi
 }
 
 case "$1" in
@@ -56,7 +68,13 @@ case "$1" in
     update)
         update_repo
         ;;
+    check-background)
+        check_background
+        ;;
+    stop-background)
+        stop_background
+        ;;
     *)
-        echo "Usage: $0 {start|start-background|install-crontab|update}"
+        echo "Usage: $0 {start|start-background|install-crontab|update|check-background|stop-background}"
         exit 1
 esac
