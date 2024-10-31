@@ -36,7 +36,8 @@ function install_crontab {
 
 function update_repo {
     echo "Updating repository..."
-    git pull
+    git fetch origin
+    git reset --hard origin/main
 }
 
 function check_background {
