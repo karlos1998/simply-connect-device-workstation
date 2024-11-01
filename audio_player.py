@@ -50,7 +50,7 @@ class AudioPlayer:
                 if channels > 1:
                     samples = np.reshape(samples, (-1, channels))
 
-                with sd.OutputStream(device=self.output_device_index, channels=channels, samplerate=sample_rate) as stream:
+                with sd.OutputStream(device=self.output_device_index, channels=channels, samplerate=44100) as stream:
                     self.stream = stream
                     try:
                         stream.write(samples)
