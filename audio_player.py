@@ -13,6 +13,7 @@ class AudioPlayer:
         self.is_playing = False
         self.stream = None
         self.audio_cache = {}
+        self.lock = threading.Lock()
 
     def add_to_cache(self, url):
         if url not in self.audio_cache:
@@ -50,41 +51,50 @@ class AudioPlayer:
                 "sample_rate": int(audio.frame_rate)
             }
 
-    def play(self, url, callback):
-        def play_audio():
+    def play(self, url, callback=None):
+        print("Play file: " + url)
+
+        # Lock to prevent race conditions
+        with self.lock:
+            # Stop current playback if any
             self.stop()
-            self.is_playing = True
-            try:
-                if url not in self.audio_cache:
-                    self.add_to_cache(url)
-                    print("Add audio to cache: " + url)
-                else:
-                    print("Using cached audio: " + url)
 
-                # Retrieve cached audio data
-                cached_audio = self.audio_cache[url]
-                samples = cached_audio["samples"]
-                channels = cached_audio["channels"]
-                sample_rate = cached_audio["sample_rate"]
+            # Check cache or load audio
+            if url not in self.audio_cache:
+                self.add_to_cache(url)
+                print("Add audio to cache: " + url)
+            else:
+                print("Using cached audio: " + url)
 
-                # Play audio
-                with sd.OutputStream(device=self.output_device_index, channels=channels, samplerate=sample_rate) as stream:
-                    self.stream = stream
-                    try:
-                        stream.write(samples)
-                        sd.wait()
-                    except sd.PortAudioError:
-                        pass
+            # Retrieve cached audio data
+            cached_audio = self.audio_cache[url]
+            samples = cached_audio["samples"]
+            channels = cached_audio["channels"]
+            sample_rate = cached_audio["sample_rate"]
 
-            finally:
-                self.is_playing = False
-                self.stream = None
-                if callback:
-                    callback()
+            # Create the new stream in a separate thread
+            def play_audio():
+                self.is_playing = True
+                try:
+                    with sd.OutputStream(device=self.output_device_index, channels=channels, samplerate=sample_rate) as stream:
+                        self.stream = stream
+                        try:
+                            stream.write(samples)
+                            sd.wait()
+                        except sd.PortAudioError:
+                            pass
+                finally:
+                    self.is_playing = False
+                    self.stream = None
+                    if callback:
+                        callback()
 
-        threading.Thread(target=play_audio).start()
+            # Start the playback in a new thread
+            threading.Thread(target=play_audio).start()
 
     def stop(self):
-        if self.stream and self.is_playing:
-            self.stream.abort()
-            self.is_playing = False
+        with self.lock:
+            if self.stream and self.is_playing:
+                self.stream.abort()
+                self.is_playing = False
+
