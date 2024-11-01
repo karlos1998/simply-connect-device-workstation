@@ -1,3 +1,4 @@
+import time
 from time import sleep
 
 import numpy as np
@@ -64,7 +65,8 @@ class AudioListener:
         # audio_file_path = "temp.ts"
         # write(audio_file_path, 8000, audio_data_concat)
 
-        audio_file_path = self.device_worker.device_id + "-temp.wav"
+        # audio_file_path = self.device_worker.device_id + "-temp.wav"
+        audio_file_path = self.device_worker.device_id + "-" + str(time.time()) + "-" +  "-temp.wav"
         write(audio_file_path, int(self.device_worker.input_audio_device['default_samplerate']), (audio_data_concat.flatten() * 32767).astype(np.int16))
 
         print("SEND AUDIO FRAGMENT")
