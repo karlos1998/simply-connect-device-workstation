@@ -30,9 +30,9 @@ class AudioRecorder:
     # def set_microphone(self, microphone_index):
     #     self.microphone_index = microphone_index
 
-    def record(self):
-        with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, callback=self.audio_callback, blocksize=BLOCK_SIZE, device=self.microphone_index):
-            self.loop_checker()
+    # def record(self):
+    #     with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, callback=self.audio_callback, blocksize=BLOCK_SIZE, device=self.microphone_index):
+    #         self.loop_checker()
 
     def loop_checker(self):
         while True:
