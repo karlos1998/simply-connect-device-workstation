@@ -47,7 +47,7 @@ class AudioPlayer:
 
                 audio = self.audio_cache[url]
                 channels = audio.channels
-                samples = np.array(audio.get_array_of_samples(), dtype=np.float32) / 32768.0
+                samples = np.array(audio.get_array_of_samples(), dtype=np.float32) / (32768.0 / (self.output_device_samplerate / 8000))
 
                 if channels > 1:
                     samples = np.reshape(samples, (-1, channels))
