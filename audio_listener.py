@@ -65,7 +65,7 @@ class AudioListener:
         # write(audio_file_path, 8000, audio_data_concat)
 
         audio_file_path = self.device_worker.device_id + "-temp.wav"
-        write(audio_file_path, self.device_worker.input_audio_device['default_samplerate'], (audio_data_concat.flatten() * 32767).astype(np.int16))
+        write(audio_file_path, int(self.device_worker.input_audio_device['default_samplerate']), (audio_data_concat.flatten() * 32767).astype(np.int16))
 
         print("SEND AUDIO FRAGMENT")
 
