@@ -41,7 +41,7 @@ class AudioListener:
         )
 
     def record(self):
-        with sd.InputStream(samplerate=self.device_worker.input_audio_device['default_samplerate'], channels=1, callback=self.audio_callback, blocksize=BLOCK_SIZE, device=self.device_worker.input_audio_device['index']):
+        with sd.InputStream(samplerate=int(self.device_worker.input_audio_device['default_samplerate']), channels=1, callback=self.audio_callback, blocksize=BLOCK_SIZE, device=self.device_worker.input_audio_device['index']):
             self.recorder_service.loop_checker()
 
     def audio_callback(self, indata, frames, time_info, status):
@@ -66,5 +66,7 @@ class AudioListener:
 
         audio_file_path = self.device_worker.device_id + "-temp.wav"
         write(audio_file_path, self.device_worker.input_audio_device['default_samplerate'], (audio_data_concat.flatten() * 32767).astype(np.int16))
+
+        print("SEND AUDIO FRAGMENT")
 
         self.device_worker.simply_connect_api_instance.send_audio_fragment(audio_file_path, is_talking, self.device_worker.audio_player.is_playing)
