@@ -27,8 +27,8 @@ class AudioRecorder:
         self.callback = callback
         self.is_talking = False
 
-    def set_microphone(self, microphone_index):
-        self.microphone_index = microphone_index
+    # def set_microphone(self, microphone_index):
+    #     self.microphone_index = microphone_index
 
     def record(self):
         with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, callback=self.audio_callback, blocksize=BLOCK_SIZE, device=self.microphone_index):

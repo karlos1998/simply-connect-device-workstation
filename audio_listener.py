@@ -32,7 +32,8 @@ class AudioListener:
         self.device_worker = device_worker
 
         self.dtmf_service = DTMFDetector(
-            callback=self.dtmf_callback
+            callback=self.dtmf_callback,
+            sample_rate=self.device_worker.input_audio_device['default_samplerate'],
         )
 
         self.recorder_service = AudioRecorder(
@@ -64,6 +65,6 @@ class AudioListener:
         # write(audio_file_path, 8000, audio_data_concat)
 
         audio_file_path = self.device_worker.device_id + "-temp.wav"
-        write(audio_file_path, 8000, (audio_data_concat.flatten() * 32767).astype(np.int16))
+        write(audio_file_path, self.device_worker.input_audio_device['default_samplerate'], (audio_data_concat.flatten() * 32767).astype(np.int16))
 
         self.device_worker.simply_connect_api_instance.send_audio_fragment(audio_file_path, is_talking, self.device_worker.audio_player.is_playing)

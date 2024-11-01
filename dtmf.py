@@ -36,10 +36,10 @@ class DTMFDetector:
         self.tone_start_time = None
         self.microphone_index = None
 
-    def set_microphone(self, microphone_index=None, sample_rate=8000, block_size=1024):
-        self.sample_rate = sample_rate
-        self.block_size = block_size
-        self.microphone_index = microphone_index
+    # def set_microphone(self, microphone_index=None, sample_rate=8000, block_size=1024):
+    #     self.sample_rate = sample_rate
+    #     self.block_size = block_size
+    #     self.microphone_index = microphone_index
 
     def audio_callback(self, indata, frames, time_info, status):
         audio_data = indata[:, 0] * 20  # Wzmocnienie sygnału
