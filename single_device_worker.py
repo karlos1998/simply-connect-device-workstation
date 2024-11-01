@@ -85,6 +85,7 @@ class SingleDeviceWorker:
             if self.audio_player:
                 node = self.simply_connect_api_instance.get_first_conversation_tree_node()
                 if node is not None and self.conversation_tree is None:
+                    print("URUCHAMIANIE DRZEWKA ROZMOWY")
                     self.conversation_tree = ConversationTree(self)
                     self.conversation_tree.run_node(node)
 
