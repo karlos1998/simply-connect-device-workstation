@@ -47,7 +47,7 @@ class AudioPlayer:
 
                 audio = self.audio_cache[url]
                 channels = audio.channels
-                samples = np.array(audio.get_array_of_samples(), dtype=np.float32) / 32768.0
+                samples = np.array(audio.get_array_of_samples(), dtype=np.int16)
 
                 if channels > 1:
                     samples = np.reshape(samples, (-1, channels))
@@ -55,7 +55,7 @@ class AudioPlayer:
                 with sd.OutputStream(device=self.output_device_index, channels=channels, samplerate=self.output_device_samplerate) as stream:
                     self.stream = stream
                     try:
-                        stream.write(samples)
+                        stream.write(samples / 32768.0)
                         sd.wait()
                     except sd.PortAudioError:
                         pass
