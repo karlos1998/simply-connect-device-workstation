@@ -6,7 +6,7 @@ from audio_recorder import AudioRecorder
 from dtmf import DTMFDetector
 from scipy.io.wavfile import write
 
-SAMPLE_RATE = 44100 #todo
+# SAMPLE_RATE = 44100 #todo
 BLOCK_SIZE = 1024
 
 
@@ -40,7 +40,7 @@ class AudioListener:
         )
 
     def record(self):
-        with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, callback=self.audio_callback, blocksize=BLOCK_SIZE, device=self.device_worker.input_audio_device_index):
+        with sd.InputStream(samplerate=self.device_worker.input_audio_device['index'], channels=1, callback=self.audio_callback, blocksize=BLOCK_SIZE, device=self.device_worker.input_audio_device['index']):
             self.recorder_service.loop_checker()
 
     def audio_callback(self, indata, frames, time_info, status):

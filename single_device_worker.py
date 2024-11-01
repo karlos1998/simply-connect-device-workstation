@@ -23,8 +23,8 @@ class SingleDeviceWorker:
         self.simply_connect_api_instance = SimplyConnectAPI()
         self.simply_connect_api_instance.device_id = self.device_id
 
-        self.input_audio_device_index = None
-        self.output_audio_device_index = None
+        self.input_audio_device = None
+        self.output_audio_device = None
 
         self.call_status = 'IDLE'
 
@@ -33,9 +33,9 @@ class SingleDeviceWorker:
             # AUDIO INPUT
             input_audio_device = device["audio_devices"]["input"] if "input" in device["audio_devices"] else None
             if input_audio_device:
-                self.input_audio_device_index = AudioDevices.find_device_index_by_data(input_audio_device, "input")
-                if self.input_audio_device_index:
-                    print("Input audio index found: " + self.input_audio_device_index.__str__())
+                self.input_audio_device = AudioDevices.find_device_by_data(input_audio_device, "input")
+                if self.input_audio_device:
+                    print("Input audio index found: " + self.input_audio_device['index'].__str__())
                     audio_listener = AudioListener(
                         device_worker=self
                     )
@@ -46,16 +46,17 @@ class SingleDeviceWorker:
             # AUDIO OUTPUT
             output_audio_device = device["audio_devices"]["output"] if "output" in device["audio_devices"] else None
             if output_audio_device:
-                self.output_audio_device_index = AudioDevices.find_device_index_by_data(output_audio_device, "output")
-                if self.output_audio_device_index:
-                    print("Output audio index found: " + self.output_audio_device_index.__str__())
+                self.output_audio_device = AudioDevices.find_device_by_data(output_audio_device, "output")
+                if self.output_audio_device:
+                    print("Output audio index found: " + self.output_audio_device['index'].__str__())
                     self.audio_player = AudioPlayer(
-                        output_device_index=self.output_audio_device_index,
+                        output_device_index=self.output_audio_device['index'],
+                        output_device_samplerate=self.output_audio_device['default_samplerate'],
                     )
 
             self.simply_connect_api_instance.update_device(
-                input_audio_device_index=self.input_audio_device_index,
-                output_audio_device_index=self.output_audio_device_index,
+                input_audio_device_index=self.input_audio_device['index'],
+                output_audio_device_index=self.output_audio_device['index'],
             )
 
         self.init_pusher_channel()

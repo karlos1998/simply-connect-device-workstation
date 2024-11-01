@@ -40,15 +40,15 @@ class AudioDevices:
         return AudioDevices.devices
 
     @staticmethod
-    def find_device_index_by_data(data, audio_type):
+    def find_device_by_data(data, audio_type):
         for audio_device in AudioDevices.devices:
             if audio_device["uuid"] == data["uuid"] and audio_device["type"] == audio_type:
                 print("Audio device found by uuid")
-                return audio_device["index"]
+                return audio_device
 
         for audio_device in AudioDevices.devices:
             if audio_device["name"] == data["name"] and audio_device["type"] == audio_type:
                 print("Audio device found by name")
-                return audio_device["index"]
+                return audio_device
 
         return None

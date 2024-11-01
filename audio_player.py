@@ -7,8 +7,9 @@ import requests
 from io import BytesIO
 
 class AudioPlayer:
-    def __init__(self, output_device_index):
+    def __init__(self, output_device_index, output_device_samplerate):
         self.output_device_index = output_device_index
+        self.output_device_samplerate = output_device_samplerate
         self.is_playing = False
         self.stream = None
         self.audio_cache = {}
@@ -19,12 +20,14 @@ class AudioPlayer:
             response.raise_for_status()
             audio = AudioSegment.from_file(BytesIO(response.content))
 
+            # Apply various audio effects
             audio = high_pass_filter(audio, 300)
             audio = low_pass_filter(audio, 3400)
             audio = normalize(audio)
             audio = compress_dynamic_range(audio, threshold=-20.0)
             audio = audio.apply_gain(5)
 
+            # Enhance mid frequencies
             mid_freq_audio = high_pass_filter(low_pass_filter(audio, 2000), 600)
             mid_freq_audio = mid_freq_audio.apply_gain(3)
             audio = audio.overlay(mid_freq_audio)
@@ -44,13 +47,12 @@ class AudioPlayer:
 
                 audio = self.audio_cache[url]
                 channels = audio.channels
-                sample_rate = audio.frame_rate
                 samples = np.array(audio.get_array_of_samples(), dtype=np.float32) / 32768.0
 
                 if channels > 1:
                     samples = np.reshape(samples, (-1, channels))
 
-                with sd.OutputStream(device=self.output_device_index, channels=channels, samplerate=44100) as stream:
+                with sd.OutputStream(device=self.output_device_index, channels=channels, samplerate=self.output_device_samplerate) as stream:
                     self.stream = stream
                     try:
                         stream.write(samples)
