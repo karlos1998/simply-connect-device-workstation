@@ -22,7 +22,7 @@ class ConversationTree:
         if self.additional_file_path is not None:
             print("additional file path")
             print(self.additional_file_path)
-            self.device_worker.audio_player.add_to_cache(self.additional_file_path)
+            await self.device_worker.audio_player.add_to_cache(self.additional_file_path)
 
         self.additional_file_processing = False
 
