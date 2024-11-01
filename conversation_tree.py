@@ -1,4 +1,5 @@
 import asyncio
+import threading
 import time
 
 
@@ -15,14 +16,14 @@ class ConversationTree:
         self.broken = True
         self.stop_loop = True
 
-    async def get_additional_node_text(self):
+    def get_additional_node_text(self):
         print("Get additional node text")
         self.additional_file_processing = True
         self.additional_file_path = self.device_worker.simply_connect_api_instance.get_conversation_tree_node_additional_audio()
         if self.additional_file_path is not None:
             print("additional file path")
             print(self.additional_file_path)
-            await self.device_worker.audio_player.add_to_cache(self.additional_file_path)
+            self.device_worker.audio_player.add_to_cache(self.additional_file_path)
 
         self.additional_file_processing = False
 
@@ -36,7 +37,7 @@ class ConversationTree:
         print(node)
 
         print("start additional text sync")
-        asyncio.create_task(self.get_additional_node_text())
+        threading.Thread(target=self.get_additional_node_text).start()
         print("stop additional text sync")
 
         file_audio = node.get("fileAudio")
