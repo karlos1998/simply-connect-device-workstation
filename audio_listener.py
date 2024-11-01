@@ -40,7 +40,7 @@ class AudioListener:
         )
 
     def record(self):
-        with sd.InputStream(samplerate=self.device_worker.input_audio_device['index'], channels=1, callback=self.audio_callback, blocksize=BLOCK_SIZE, device=self.device_worker.input_audio_device['index']):
+        with sd.InputStream(samplerate=self.device_worker.input_audio_device['default_samplerate'], channels=1, callback=self.audio_callback, blocksize=BLOCK_SIZE, device=self.device_worker.input_audio_device['index']):
             self.recorder_service.loop_checker()
 
     def audio_callback(self, indata, frames, time_info, status):
