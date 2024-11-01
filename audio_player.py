@@ -9,8 +9,7 @@ from io import BytesIO
 class AudioPlayer:
     def __init__(self, output_device_index, output_device_samplerate):
         self.output_device_index = output_device_index
-        print("output_device_samplerate: " + str(output_device_samplerate))
-        self.output_device_samplerate = int(output_device_samplerate)
+        self.output_device_samplerate = int(output_device_samplerate)  # Konwertujemy na int, aby unikać błędów
         self.is_playing = False
         self.stream = None
         self.audio_cache = {}
@@ -37,7 +36,19 @@ class AudioPlayer:
             mid_freq_audio = mid_freq_audio.apply_gain(3)
             audio = audio.overlay(mid_freq_audio)
 
-            self.audio_cache[url] = audio
+            # Prepare numpy samples
+            channels = audio.channels
+            samples = np.array(audio.get_array_of_samples(), dtype=np.float32) / 32768.0
+
+            if channels > 1:
+                samples = np.reshape(samples, (-1, channels))
+
+            # Cache processed audio
+            self.audio_cache[url] = {
+                "samples": samples,
+                "channels": channels,
+                "sample_rate": int(audio.frame_rate)
+            }
 
     def play(self, url, callback):
         def play_audio():
@@ -50,15 +61,13 @@ class AudioPlayer:
                 else:
                     print("Using cached audio: " + url)
 
-                audio = self.audio_cache[url]
-                channels = audio.channels
-                sample_rate = int(audio.frame_rate)  # Konwertujemy na int, aby uniknąć problemów z 'float'
+                # Retrieve cached audio data
+                cached_audio = self.audio_cache[url]
+                samples = cached_audio["samples"]
+                channels = cached_audio["channels"]
+                sample_rate = cached_audio["sample_rate"]
 
-                samples = np.array(audio.get_array_of_samples(), dtype=np.float32) / 32768.0
-
-                if channels > 1:
-                    samples = np.reshape(samples, (-1, channels))
-
+                # Play audio
                 with sd.OutputStream(device=self.output_device_index, channels=channels, samplerate=sample_rate) as stream:
                     self.stream = stream
                     try:
