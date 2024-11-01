@@ -6,7 +6,7 @@ from audio_recorder import AudioRecorder
 from dtmf import DTMFDetector
 from scipy.io.wavfile import write
 
-SAMPLE_RATE = 8000 #todo
+SAMPLE_RATE = 44100 #todo
 BLOCK_SIZE = 1024
 
 
