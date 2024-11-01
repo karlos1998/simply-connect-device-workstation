@@ -35,7 +35,9 @@ class ConversationTree:
         print("run node: ")
         print(node)
 
+        print("start additional text sync")
         asyncio.run(self.get_additional_node_text())
+        print("stop additional text sync")
 
         file_audio = node.get("fileAudio")
         if file_audio is not None:
