@@ -67,7 +67,7 @@ class SingleDeviceWorker:
                                         callback_success=lambda: print("[" + self.device_id+ "] Private channel subscription succeeded"),
                                         callback_fail=lambda err: print(f"[" + self.device_id + "] Failed to subscribe to private channel: {err}"))
 
-        device_private_channel.bind("App\Events\CallStatusChanged", callback=self.call_status_changed)
+        device_private_channel.bind(r"App\Events\CallStatusChanged", callback=self.call_status_changed)
 
     def call_status_changed(self, data):
         self.call_status = data.get("call", {}).get("status", None)

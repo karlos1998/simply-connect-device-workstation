@@ -20,6 +20,7 @@ class AudioDevices:
         AudioDevices.devices = []
 
         for i, device in enumerate(devices):
+            print("Audio Device name: " + device['name'])
             # Tworzenie wpisu dla funkcji wejściowej, jeśli urządzenie ma wejścia
             if device['max_input_channels'] > 0:
                 input_device = device.copy()
