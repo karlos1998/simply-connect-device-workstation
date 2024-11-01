@@ -17,11 +17,11 @@ class ConversationTree:
         self.stop_loop = True
 
     def get_additional_node_text(self):
-        print("Get additional node text")
+        # print("Get additional node text")
         self.additional_file_processing = True
         self.additional_file_path = self.device_worker.simply_connect_api_instance.get_conversation_tree_node_additional_audio()
         if self.additional_file_path is not None:
-            print("additional file path")
+            # print("additional file path")
             print(self.additional_file_path)
             self.device_worker.audio_player.add_to_cache(self.additional_file_path)
 
@@ -33,41 +33,38 @@ class ConversationTree:
 
         self.stop_loop = True
 
-        print("run node: ")
         print(node)
 
-        print("start additional text sync")
         threading.Thread(target=self.get_additional_node_text).start()
-        print("stop additional text sync")
 
         file_audio = node.get("fileAudio")
         if file_audio is not None:
             self.device_worker.audio_player.play(file_audio.get("url"), callback=lambda: self.audio_stopped(node.get("id")))
         elif node.get("type") == "output":
-            print("Rozmowa zostala zakonczona - node zwrocil type output")
+            # print("Rozmowa zostala zakonczona - node zwrocil type output")
             pass  # todo - rozmowa zakonczona. serwer sam ja zamknie z telefonem, ale czy tu trzeba cos robic?
         else:
             self.go_to_next_step(node.get("id"))
 
     def audio_stopped(self, current_node_id):
-        print("Odtwrzanie dzwieku zakonczone.")
+        # print("Odtwrzanie dzwieku zakonczone.")
         if self.device_worker.call_status == 'OFFHOOK':
             if self.additional_file_processing is True:
                 tmp_time=time.time()
                 while self.additional_file_processing is True and (time.time() - tmp_time) < 15:
-                    print("Czekam az additional file skonczy processing...")
+                    # print("Czekam az additional file skonczy processing...")
                     time.sleep(0.1)
 
             if self.additional_file_path and self.additional_file_processing is False:
-                print("uruchamiam dodatkowy plik audio dla node")
+                # print("uruchamiam dodatkowy plik audio dla node")
                 self.device_worker.audio_player.play(self.additional_file_path, callback=lambda: self.audio_stopped(current_node_id))
                 self.additional_file_path = None
             elif self.additional_file_processing is True:
                 print("Warning.... Chcialem uruchomic additional file, ale za dlugo to trwalo, wiec pomijam") #todo! moze powinno przerywac rozmowe?
-                print("Wiec pora na kolejny krok")
+                # print("Wiec pora na kolejny krok")
                 self.go_to_next_step(current_node_id)
             else:
-                print("Pora na kolejny krok")
+                # print("Pora na kolejny krok")
                 self.go_to_next_step(current_node_id)
         else:
             print("Status rozmowy zmienil sie - zakonczono drzewko.")

@@ -43,7 +43,7 @@ class PusherClient:
         """
         Handles incoming WebSocket messages.
         """
-        print(f"Received message: {message}")
+        # print(f"Received message: {message}")
         data = json.loads(message)
         event = data.get("event")
         channel = data.get("channel")
@@ -52,7 +52,7 @@ class PusherClient:
             connection_data = json.loads(data["data"])
             self.socket_id = connection_data["socket_id"]
             self.ping_interval = connection_data.get("activity_timeout", 30)
-            print(f"Connection established. socket_id: {self.socket_id}, ping interval: {self.ping_interval} seconds")
+            # print(f"Connection established. socket_id: {self.socket_id}, ping interval: {self.ping_interval} seconds")
 
             # Start pinging the server
             self.start_pinging()
