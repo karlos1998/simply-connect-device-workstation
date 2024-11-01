@@ -20,6 +20,10 @@ class AudioPlayer:
             response.raise_for_status()
             audio = AudioSegment.from_file(BytesIO(response.content))
 
+            # Convert the audio to match the output device sample rate
+            if audio.frame_rate != self.output_device_samplerate:
+                audio = audio.set_frame_rate(self.output_device_samplerate)
+
             # Apply various audio effects
             audio = high_pass_filter(audio, 300)
             audio = low_pass_filter(audio, 3400)
@@ -47,12 +51,13 @@ class AudioPlayer:
 
                 audio = self.audio_cache[url]
                 channels = audio.channels
-                samples = np.array(audio.get_array_of_samples(), dtype=np.float32)
+                sample_rate = audio.frame_rate
+                samples = np.array(audio.get_array_of_samples(), dtype=np.float32) / 32768.0
 
                 if channels > 1:
                     samples = np.reshape(samples, (-1, channels))
 
-                with sd.OutputStream(device=self.output_device_index, channels=channels, samplerate=self.output_device_samplerate) as stream:
+                with sd.OutputStream(device=self.output_device_index, channels=channels, samplerate=sample_rate) as stream:
                     self.stream = stream
                     try:
                         stream.write(samples)
