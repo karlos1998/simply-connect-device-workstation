@@ -35,6 +35,8 @@ class ConversationTree:
         print("run node: ")
         print(node)
 
+        asyncio.run(self.get_additional_node_text())
+
         file_audio = node.get("fileAudio")
         if file_audio is not None:
             self.device_worker.audio_player.play(file_audio.get("url"), callback=lambda: self.audio_stopped(node.get("id")))
@@ -43,8 +45,6 @@ class ConversationTree:
             pass  # todo - rozmowa zakonczona. serwer sam ja zamknie z telefonem, ale czy tu trzeba cos robic?
         else:
             self.go_to_next_step(node.get("id"))
-
-        asyncio.run(self.get_additional_node_text())
 
     def audio_stopped(self, current_node_id):
         print("Odtwrzanie dzwieku zakonczone.")

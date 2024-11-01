@@ -51,6 +51,8 @@ class AudioPlayer:
                 "sample_rate": int(audio.frame_rate)
             }
 
+        print("Cached: " + url)
+
     def play(self, url, callback=None):
         print("Play file: " + url)
 
