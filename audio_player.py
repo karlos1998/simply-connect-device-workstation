@@ -9,7 +9,8 @@ from io import BytesIO
 class AudioPlayer:
     def __init__(self, output_device_index, output_device_samplerate):
         self.output_device_index = output_device_index
-        self.output_device_samplerate = output_device_samplerate
+        print("output_device_samplerate: " + str(output_device_samplerate))
+        self.output_device_samplerate = int(output_device_samplerate)
         self.is_playing = False
         self.stream = None
         self.audio_cache = {}
@@ -51,7 +52,8 @@ class AudioPlayer:
 
                 audio = self.audio_cache[url]
                 channels = audio.channels
-                sample_rate = audio.frame_rate
+                sample_rate = int(audio.frame_rate)  # Konwertujemy na int, aby uniknąć problemów z 'float'
+
                 samples = np.array(audio.get_array_of_samples(), dtype=np.float32) / 32768.0
 
                 if channels > 1:
