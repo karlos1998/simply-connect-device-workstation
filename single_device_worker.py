@@ -87,7 +87,7 @@ class SingleDeviceWorker:
                 if node is not None and self.conversation_tree is None:
                     print("URUCHAMIANIE DRZEWKA ROZMOWY")
                     self.conversation_tree = ConversationTree(self)
-                    time.sleep(1)
+                    time.sleep(3)
                     self.conversation_tree.run_node(node)
 
         if self.call_status == 'IDLE':
